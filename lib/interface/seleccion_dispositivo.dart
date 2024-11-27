@@ -21,46 +21,83 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
     // Aquí se implementaría la lógica para cambiar el tema en toda la app
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        _navigateToSettings();
+        break;
+      case 1:
+        // Ya estamos en la pantalla de selección de dispositivo
+        break;
+      case 2:
+        // Implementar navegación a la pantalla de pagos
+        break;
+      case 3:
+        _navigateToProfile();
+        break;
+      case 4:
+        _showLogoutDialog();
+        break;
+    }
+  }
+
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PantallaAjustes(
+          onThemeChanged: _onThemeChanged,
+          currentThemeMode: _currentThemeMode,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PantallaPerfil(),
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cerrar sesión'),
+          content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Cerrar sesión'),
+              onPressed: () {
+                // Implementar lógica para cerrar sesión
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _buildBody(),
       bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PantallaAjustes(
-                    onThemeChanged: _onThemeChanged,
-                    currentThemeMode: _currentThemeMode,
-                  ),
-                ),
-              );
-              break;
-            case 1:
-              // Ya estamos en la pantalla de selección de dispositivo
-              break;
-            case 2:
-              // Implementar navegación a la pantalla de pagos
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PantallaPerfil(),
-                ),
-              );
-              break;
-            case 4:
-              // Implementar lógica para cerrar sesión
-              break;
-          }
-        },
+        onDestinationSelected: _onItemTapped,
         selectedIndex: _selectedIndex,
         destinations: const <NavigationDestination>[
           NavigationDestination(
@@ -144,19 +181,24 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
     IconData icon,
     VoidCallback onTap,
   ) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 150,
         height: 150,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode ? theme.cardColor : Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 5,
-              blurRadius: 7,
+              color: isDarkMode
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
               offset: const Offset(0, 3),
             ),
           ],
@@ -164,14 +206,14 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 60, color: Colors.blue),
+            Icon(icon, size: 60, color: theme.primaryColor),
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: theme.primaryColor,
               ),
             ),
           ],
@@ -184,8 +226,9 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MenuReparacion(deviceType: deviceType),
+        builder: (context) => MenuReparacion(tipoDispositivo: deviceType),
       ),
     );
   }
 }
+

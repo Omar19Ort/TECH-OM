@@ -1,165 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'formulario_reparacion.dart';
 
-class MenuReparacion extends StatelessWidget {
-  final String deviceType;
+class MenuReparacion extends StatefulWidget {
+  final String tipoDispositivo;
 
-  const MenuReparacion({Key? key, required this.deviceType}) : super(key: key);
+  const MenuReparacion({Key? key, required this.tipoDispositivo}) : super(key: key);
+
+  @override
+  _MenuReparacionState createState() => _MenuReparacionState();
+}
+
+class _MenuReparacionState extends State<MenuReparacion> {
+  String? _selectedRepair;
+
+  List<Map<String, dynamic>> getRepairOptions() {
+    if (widget.tipoDispositivo == 'Celular') {
+      return [
+        {'title': 'Pantalla', 'icon': Icons.phone_android},
+        {'title': 'Batería', 'icon': Icons.battery_full},
+        {'title': 'Cámara', 'icon': Icons.camera_alt},
+        {'title': 'Bocina', 'icon': Icons.volume_up},
+        {'title': 'Botón de volumen/encendido', 'icon': Icons.power_settings_new},
+        {'title': 'Altavoz', 'icon': Icons.speaker},
+        {'title': 'Centro de carga', 'icon': Icons.charging_station},
+      ];
+    } else if (widget.tipoDispositivo == 'Computadora') {
+      return [
+        {'title': 'Pantalla', 'icon': Icons.desktop_windows},
+        {'title': 'Memoria RAM', 'icon': Icons.memory},
+        {'title': 'Disco HDD/SSD', 'icon': Icons.storage},
+        {'title': 'Batería', 'icon': Icons.battery_full},
+        {'title': 'Instalación de software', 'icon': Icons.get_app},
+        {'title': 'Formateo', 'icon': Icons.refresh},
+        {'title': 'Instalación de Sistema Operativo', 'icon': Icons.settings_applications},
+      ];
+    }
+    return [];
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> servicios = deviceType == 'Computadora'
-        ? [
-            {
-              'titulo': 'Reemplazo de pantalla',
-              'imagen': 'assets/screen_replacement.png',
-              'descripcion': 'Reparación y reemplazo de pantallas dañadas'
-            },
-            {
-              'titulo': 'Reemplazo de batería',
-              'imagen': 'assets/battery_replacement.png',
-              'descripcion': 'Cambio de batería agotada o dañada'
-            },
-            {
-              'titulo': 'Cambio de disco',
-              'imagen': 'assets/disk_replacement.png',
-              'descripcion': 'Actualización o reemplazo de disco duro'
-            },
-            {
-              'titulo': 'Instalación de RAM',
-              'imagen': 'assets/ram_installation.png',
-              'descripcion': 'Aumento de memoria RAM'
-            },
-            {
-              'titulo': 'Instalación de SO',
-              'imagen': 'assets/os_installation.png',
-              'descripcion': 'Instalación de sistema operativo'
-            },
-            {
-              'titulo': 'Instalación de programa',
-              'imagen': 'assets/software_installation.png',
-              'descripcion': 'Instalación de software específico'
-            },
-            {
-              'titulo': 'Formateo del equipo',
-              'imagen': 'assets/formatting.png',
-              'descripcion': 'Formateo completo y restauración del sistema'
-            },
-          ]
-        : [
-            {
-              'titulo': 'Reemplazo de pantalla',
-              'imagen': 'assets/screen_replacement.png',
-              'descripcion': 'Reparación y reemplazo de pantallas dañadas'
-            },
-            {
-              'titulo': 'Reemplazo de centro de carga',
-              'imagen': 'assets/charging_port.png',
-              'descripcion': 'Cambio de puerto de carga'
-            },
-            {
-              'titulo': 'Reemplazo de batería',
-              'imagen': 'assets/battery_replacement.png',
-              'descripcion': 'Cambio de batería agotada o dañada'
-            },
-            {
-              'titulo': 'Reemplazo de bocina/cámara',
-              'imagen': 'assets/speaker_camera.png',
-              'descripcion': 'Instalación o reemplazo de bocina o cámara'
-            },
-            {
-              'titulo': 'Quitar cuenta Google',
-              'imagen': 'assets/google_account.png',
-              'descripcion': 'Eliminación de cuenta Google'
-            },
-            {
-              'titulo': 'Formateo de celular',
-              'imagen': 'assets/formatting.png',
-              'descripcion': 'Formateo completo y restauración del sistema'
-            },
-            {
-              'titulo': 'Quitar patrón olvidado',
-              'imagen': 'assets/pattern_unlock.png',
-              'descripcion': 'Desbloqueo de patrón olvidado'
-            },
-          ];
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final repairOptions = getRepairOptions();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Reparación de $deviceType',
-          style: const TextStyle(
-            color: Colors.blue,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
+        title: Text('Reparaciones para ${widget.tipoDispositivo}'),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.blue),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: CarouselSlider.builder(
-              itemCount: servicios.length,
-              options: CarouselOptions(
-                height: double.infinity,
-                enlargeCenterPage: true,
-                enableInfiniteScroll: false,
-                viewportFraction: 0.85,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
               ),
-              itemBuilder: (context, index, realIndex) {
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Image.asset(
-                            servicios[index]['imagen']!,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              Text(
-                                servicios[index]['titulo']!,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                servicios[index]['descripcion']!,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
+              itemCount: repairOptions.length,
+              itemBuilder: (context, index) {
+                final option = repairOptions[index];
+                return _buildRepairOption(option['title'], option['icon']);
               },
             ),
           ),
@@ -168,25 +72,21 @@ class MenuReparacion extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Solicitud de reparación para $deviceType enviada'),
-                    ),
-                  );
-                },
+                onPressed: _selectedRepair != null
+                    ? () => _navigateToForm(context)
+                    : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: isDarkMode ? Colors.blue[700] : const Color(0xFF9DC0B0),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Solicitar reparación',
+                child: Text(
+                  'Continuar a la cotización',
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.white,
+                    color: isDarkMode ? Colors.white : Colors.white,
                   ),
                 ),
               ),
@@ -196,4 +96,59 @@ class MenuReparacion extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildRepairOption(String title, IconData icon) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isSelected = _selectedRepair == title;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedRepair = title;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Seleccionado: $title'),
+            duration: const Duration(seconds: 1),
+            backgroundColor: isDarkMode ? Colors.blue[700] : const Color(0xFF9DC0B0),
+          ),
+        );
+      },
+      child: Card(
+        elevation: isSelected ? 8 : 2,
+        color: isSelected
+            ? (isDarkMode ? Colors.blue[700] : const Color(0xFF9DC0B0))
+            : Theme.of(context).cardColor,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 50, color: isSelected ? Colors.white : Colors.blue),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : null,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToForm(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FormularioReparacion(
+          tipoReparacion: _selectedRepair!,
+          tipoDispositivo: widget.tipoDispositivo,
+        ),
+      ),
+    );
+  }
 }
+
