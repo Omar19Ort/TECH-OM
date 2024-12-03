@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:tech_om/database/database_helper.dart';
 
 class FormularioReparacion extends StatefulWidget {
   final String tipoReparacion;
@@ -35,8 +36,48 @@ class _FormularioReparacionState extends State<FormularioReparacion> {
     }
   }
 
+  Future<void> _enviarCotizacion() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final newRepair = {
+          'userId': 1, // Replace with actual user ID when you implement user sessions
+          'deviceType': widget.tipoDispositivo,
+          'repairType': widget.tipoReparacion,
+          'brand': _marcaController.text,
+          'model': _modeloController.text,
+          'description': _descripcionController.text,
+          'cost': double.parse(_costoController.text),
+          'imageUrl': _imagen?.path ?? '',
+        };
+
+        final id = await DatabaseHelper.instance.insertRepair(newRepair);
+
+        if (id > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cotización enviada exitosamente'),
+              backgroundColor: Color(0xFF43A047),
+            ),
+          );
+          Navigator.popUntil(context, (route) => route.isFirst);
+        } else {
+          throw Exception('Failed to insert repair');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al enviar la cotización: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -166,17 +207,7 @@ class _FormularioReparacionState extends State<FormularioReparacion> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            // Aquí iría la lógica para enviar el formulario
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Enviando cotización...'),
-                                backgroundColor: Color(0xFF43A047),
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: _enviarCotizacion,
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Color(0xFF1B5E20),
                           backgroundColor: Colors.white,
