@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'menu_reparacion.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_perfil.dart';
+import 'WelcomeScreen.dart';
 
 class SeleccionDispositivo extends StatefulWidget {
   const SeleccionDispositivo({Key? key}) : super(key: key);
@@ -82,13 +83,22 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
             TextButton(
               child: const Text('Cerrar sesión'),
               onPressed: () {
-                // Implementar lógica para cerrar sesión
                 Navigator.of(context).pop();
+                _logout();
               },
             ),
           ],
         );
       },
+    );
+  }
+
+  void _logout() {
+    // Aquí puedes agregar cualquier lógica adicional para cerrar sesión,
+    // como limpiar datos de usuario, tokens, etc.
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const PantallaBienvenida()),
+      (Route<dynamic> route) => false,
     );
   }
 

@@ -268,8 +268,7 @@ class RepairEditDialog extends StatefulWidget {
 }
 
 class _RepairEditDialogState extends State<RepairEditDialog> {
-  late TextEditingController _repairTypeController;
-  late TextEditingController _deviceTypeController;
+
   late TextEditingController _brandController;
   late TextEditingController _modelController;
   late TextEditingController _descriptionController;
@@ -278,8 +277,7 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
   @override
   void initState() {
     super.initState();
-    _repairTypeController = TextEditingController(text: widget.repair['repairType']);
-    _deviceTypeController = TextEditingController(text: widget.repair['deviceType']);
+    
     _brandController = TextEditingController(text: widget.repair['brand']);
     _modelController = TextEditingController(text: widget.repair['model']);
     _descriptionController = TextEditingController(text: widget.repair['description']);
@@ -288,8 +286,7 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
 
   @override
   void dispose() {
-    _repairTypeController.dispose();
-    _deviceTypeController.dispose();
+
     _brandController.dispose();
     _modelController.dispose();
     _descriptionController.dispose();
@@ -305,14 +302,7 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _repairTypeController,
-              decoration: const InputDecoration(labelText: 'Tipo de Reparación'),
-            ),
-            TextField(
-              controller: _deviceTypeController,
-              decoration: const InputDecoration(labelText: 'Tipo de Dispositivo'),
-            ),
+           
             TextField(
               controller: _brandController,
               decoration: const InputDecoration(labelText: 'Marca'),
@@ -343,8 +333,6 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
           onPressed: () {
             final updatedRepair = {
               ...widget.repair,
-              'repairType': _repairTypeController.text,
-              'deviceType': _deviceTypeController.text,
               'brand': _brandController.text,
               'model': _modelController.text,
               'description': _descriptionController.text,

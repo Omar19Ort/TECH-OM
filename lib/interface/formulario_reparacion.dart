@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:tech_om/database/database_helper.dart';
+import 'seleccion_dispositivo.dart';
 
 class FormularioReparacion extends StatefulWidget {
   final String tipoReparacion;
@@ -59,7 +60,10 @@ class _FormularioReparacionState extends State<FormularioReparacion> {
               backgroundColor: Color(0xFF43A047),
             ),
           );
-          Navigator.popUntil(context, (route) => route.isFirst);
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const SeleccionDispositivo()),
+            (Route<dynamic> route) => false,
+          );
         } else {
           throw Exception('Failed to insert repair');
         }
