@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'acerca_de.dart';
+import 'historial_reparaciones.dart';
 
 class PantallaAjustes extends StatefulWidget {
   final Function(ThemeMode) onThemeChanged;
@@ -51,7 +52,12 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
                   'Historial de reparaciones',
                   Icons.build_outlined,
                   onTap: () {
-                    // Implementar navegación al historial de reparaciones
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistorialReparaciones(),
+                      ),
+                    );
                   },
                 ),
                 _buildListTile(
@@ -86,7 +92,7 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Image.asset(
-              'assets/logo.png',
+              'assets/Logo4.png',
               height: 100,
               width: 100,
             ),
@@ -154,3 +160,4 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
     );
   }
 }
+

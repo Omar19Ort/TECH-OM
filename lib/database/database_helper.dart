@@ -120,21 +120,11 @@ CREATE TABLE repairs (
 
   Future<int> updateRepair(Map<String, dynamic> row) async {
     final db = await instance.database;
-    final id = row['id'];
     return await db.update(
       'repairs',
       row,
       where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<int> deleteUser(int id) async {
-    final db = await instance.database;
-    return await db.delete(
-      'users',
-      where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [row['id']],
     );
   }
 
