@@ -125,17 +125,17 @@ class AcercaDe extends StatelessWidget {
                     SizedBox(height: 16),
                     _ContactRow(
                       icon: Icons.email,
-                      text: 'soporte@tech-om.com',
+                      text: 'omarvaz1902@gmail.com',
                     ),
                     SizedBox(height: 8),
                     _ContactRow(
                       icon: Icons.phone,
-                      text: '+52 (123) 456-7890',
+                      text: '+52 (449) 425-9237',
                     ),
                     SizedBox(height: 8),
                     _ContactRow(
                       icon: Icons.location_on,
-                      text: 'Ciudad de México, México',
+                      text: 'Aguascalientes, México',
                     ),
                   ],
                 ),

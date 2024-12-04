@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'acerca_de.dart';
 import 'historial_reparaciones.dart';
+import 'Pantalla_usuarios.dart'; // New import for the users list screen
 
 class PantallaAjustes extends StatefulWidget {
   final Function(ThemeMode) onThemeChanged;
@@ -68,10 +69,15 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
                   },
                 ),
                 _buildListTile(
-                  'Cerrar sesión',
-                  Icons.logout_outlined,
+                  'Usuarios',
+                  Icons.people_outline,
                   onTap: () {
-                    // Implementar lógica para cerrar sesión
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PantallaUsuarios(),
+                      ),
+                    );
                   },
                 ),
                 _buildListTile(
