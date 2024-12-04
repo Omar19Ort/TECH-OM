@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'menu_reparacion.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_perfil.dart';
-import 'WelcomeScreen.dart';
+import 'WelcomeScreen.dart'; // Asegúrate de que este archivo exista y tenga el nombre correcto
 
 class SeleccionDispositivo extends StatefulWidget {
   const SeleccionDispositivo({Key? key}) : super(key: key);

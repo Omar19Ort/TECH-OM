@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
+  static int? _currentUserId;
 
   DatabaseHelper._init();
 
@@ -140,6 +141,19 @@ CREATE TABLE repairs (
   Future<void> close() async {
     final db = await instance.database;
     db.close();
+  }
+
+  // Nuevo método para establecer el usuario actual
+  static void setCurrentUserId(int userId) {
+    _currentUserId = userId;
+  }
+
+  // Método actualizado para obtener el usuario actual
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    if (_currentUserId == null) {
+      return null;
+    }
+    return await getUserById(_currentUserId!);
   }
 }
 

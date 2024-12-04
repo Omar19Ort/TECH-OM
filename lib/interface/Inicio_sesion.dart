@@ -20,13 +20,11 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final users = await DatabaseHelper.instance.getUsers();
-        final user = users.firstWhere(
-          (user) => user['email'] == _emailController.text && user['password'] == _passwordController.text,
-          orElse: () => {},
-        );
-
-        if (user.isNotEmpty) {
+        final user = await DatabaseHelper.instance.getUserByEmail(_emailController.text);
+        if (user != null && user['password'] == _passwordController.text) {
+          // Establecer el ID del usuario actual
+          DatabaseHelper.setCurrentUserId(user['id'] as int);
+          
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
