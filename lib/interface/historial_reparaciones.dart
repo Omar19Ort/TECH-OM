@@ -22,7 +22,18 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
 
   Future<void> _loadRepairs() async {
     try {
-      final repairs = await DatabaseHelper.instance.getRepairs();
+      // Obtener el ID del usuario actual
+      final userId = DatabaseHelper.getCurrentUserId();
+      
+      List<Map<String, dynamic>> repairs;
+      if (userId != null) {
+        // Si hay un usuario logueado, obtener solo sus reparaciones
+        repairs = await DatabaseHelper.instance.getRepairsByUserId(userId);
+      } else {
+        // Si no hay usuario logueado, obtener todas las reparaciones (o ninguna)
+        repairs = await DatabaseHelper.instance.getRepairs();
+      }
+      
       setState(() {
         _repairs = repairs;
         _isLoading = false;
@@ -268,7 +279,8 @@ class RepairEditDialog extends StatefulWidget {
 }
 
 class _RepairEditDialogState extends State<RepairEditDialog> {
-
+  late TextEditingController _repairTypeController;
+  late TextEditingController _deviceTypeController;
   late TextEditingController _brandController;
   late TextEditingController _modelController;
   late TextEditingController _descriptionController;
@@ -277,7 +289,8 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
   @override
   void initState() {
     super.initState();
-    
+    _repairTypeController = TextEditingController(text: widget.repair['repairType']);
+    _deviceTypeController = TextEditingController(text: widget.repair['deviceType']);
     _brandController = TextEditingController(text: widget.repair['brand']);
     _modelController = TextEditingController(text: widget.repair['model']);
     _descriptionController = TextEditingController(text: widget.repair['description']);
@@ -286,7 +299,8 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
 
   @override
   void dispose() {
-
+    _repairTypeController.dispose();
+    _deviceTypeController.dispose();
     _brandController.dispose();
     _modelController.dispose();
     _descriptionController.dispose();
@@ -302,7 +316,14 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-           
+            TextField(
+              controller: _repairTypeController,
+              decoration: const InputDecoration(labelText: 'Tipo de Reparación'),
+            ),
+            TextField(
+              controller: _deviceTypeController,
+              decoration: const InputDecoration(labelText: 'Tipo de Dispositivo'),
+            ),
             TextField(
               controller: _brandController,
               decoration: const InputDecoration(labelText: 'Marca'),
@@ -333,6 +354,8 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
           onPressed: () {
             final updatedRepair = {
               ...widget.repair,
+              'repairType': _repairTypeController.text,
+              'deviceType': _deviceTypeController.text,
               'brand': _brandController.text,
               'model': _modelController.text,
               'description': _descriptionController.text,
@@ -346,4 +369,3 @@ class _RepairEditDialogState extends State<RepairEditDialog> {
     );
   }
 }
-

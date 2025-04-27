@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'acerca_de.dart';
 import 'historial_reparaciones.dart';
-import 'Pantalla_usuarios.dart'; // New import for the users list screen
+import 'Pantalla_usuarios.dart';
+import 'pantalla_refacciones.dart'; // Importamos la nueva pantalla
+import 'registrar_compra_refaccion.dart'; // Importamos la pantalla de registro de compra
+import 'historial_compras.dart'; // Importamos la pantalla de historial de compras
 
 class PantallaAjustes extends StatefulWidget {
   final Function(ThemeMode) onThemeChanged;
@@ -49,6 +52,42 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
             child: ListView(
               children: [
                 _buildThemeSwitch(),
+                _buildListTile(
+                  'Catálogo de Refacciones',
+                  Icons.inventory_2_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PantallaRefacciones(),
+                      ),
+                    );
+                  },
+                ),
+                _buildListTile(
+                  'Registrar Compra de Refacción',
+                  Icons.shopping_cart_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegistrarCompraRefaccion(),
+                      ),
+                    );
+                  },
+                ),
+                _buildListTile(
+                  'Historial de Compras',
+                  Icons.history,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistorialCompras(),
+                      ),
+                    );
+                  },
+                ),
                 _buildListTile(
                   'Historial de reparaciones',
                   Icons.build_outlined,
@@ -166,4 +205,3 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
     );
   }
 }
-

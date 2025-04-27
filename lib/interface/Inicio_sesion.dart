@@ -16,14 +16,21 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      
       try {
         final user = await DatabaseHelper.instance.getUserByEmail(_emailController.text);
         if (user != null && user['password'] == _passwordController.text) {
           // Establecer el ID del usuario actual
-          DatabaseHelper.setCurrentUserId(user['id'] as int);
+          int userId = user['id'] as int;
+          print('Usuario encontrado con ID: $userId');
+          DatabaseHelper.setCurrentUserId(userId);
           
           Navigator.pushReplacement(
             context,
@@ -37,9 +44,14 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
           );
         }
       } catch (e) {
+        print('Error en inicio de sesión: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al iniciar sesión: ${e.toString()}')),
         );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -116,17 +128,19 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _login,
+                    onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Iniciar Sesión',
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text(
+                            'Iniciar Sesión',
+                            style: TextStyle(fontSize: 18),
+                          ),
                   ),
                   const SizedBox(height: 16),
                   TextButton(
@@ -179,4 +193,3 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
     super.dispose();
   }
 }
-

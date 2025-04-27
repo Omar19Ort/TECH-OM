@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'menu_reparacion.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_perfil.dart';
-import 'WelcomeScreen.dart'; // Asegúrate de que este archivo exista y tenga el nombre correcto
+import 'WelcomeScreen.dart';
+import 'cotizar_reparacion.dart'; // New import for the quote screen
 
 class SeleccionDispositivo extends StatefulWidget {
   const SeleccionDispositivo({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
         // Ya estamos en la pantalla de selección de dispositivo
         break;
       case 2:
-        // Implementar navegación a la pantalla de pagos
+        _navigateToCotizacion();
         break;
       case 3:
         _navigateToProfile();
@@ -53,6 +54,15 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
           onThemeChanged: _onThemeChanged,
           currentThemeMode: _currentThemeMode,
         ),
+      ),
+    );
+  }
+
+  void _navigateToCotizacion() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CotizarReparacion(),
       ),
     );
   }
@@ -119,8 +129,8 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
             label: 'Dispositivos',
           ),
           NavigationDestination(
-            icon: Icon(Icons.payment),
-            label: 'Pagos',
+            icon: Icon(Icons.calculate),
+            label: 'Cotizar\nReparación',
           ),
           NavigationDestination(
             icon: Icon(Icons.person),
@@ -241,4 +251,3 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
     );
   }
 }
-

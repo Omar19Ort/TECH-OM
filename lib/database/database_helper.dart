@@ -1,5 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:async';
+import 'spare_parts_db.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -20,51 +22,105 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 4, // Incrementamos la versión para la nueva tabla de compras
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
   Future<void> _createDB(Database db, int version) async {
-    const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
-    const textType = 'TEXT NOT NULL';
-    const integerType = 'INTEGER NOT NULL';
-    const realType = 'REAL NOT NULL';
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        phone TEXT
+      )
+    ''');
 
     await db.execute('''
-CREATE TABLE users (
-  id $idType,
-  name $textType,
-  email $textType UNIQUE,
-  password $textType,
-  phone TEXT
-)
-''');
+      CREATE TABLE repairs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER NOT NULL,
+        deviceType TEXT NOT NULL,
+        repairType TEXT NOT NULL,
+        brand TEXT NOT NULL,
+        model TEXT NOT NULL,
+        description TEXT,
+        cost REAL NOT NULL,
+        imageUrl TEXT,
+        createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userId) REFERENCES users (id)
+      )
+    ''');
 
     await db.execute('''
-CREATE TABLE repairs (
-  id $idType,
-  userId $integerType,
-  deviceType $textType,
-  repairType $textType,
-  brand $textType,
-  model $textType,
-  description TEXT,
-  cost $realType,
-  imageUrl TEXT,
-  FOREIGN KEY (userId) REFERENCES users (id)
-)
-''');
+      CREATE TABLE custom_repair_types (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        deviceType TEXT NOT NULL,
+        repairType TEXT NOT NULL,
+        createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(deviceType, repairType)
+      )
+    ''');
+
+    // Crear tabla de refacciones usando el método de SparePartsDB
+    await SparePartsDB.createTable(db);
   }
 
-  Future<int> insertUser(Map<String, dynamic> row) async {
-    final db = await instance.database;
-    return await db.insert('users', row, conflictAlgorithm: ConflictAlgorithm.abort);
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add custom_repair_types table if upgrading from version 1
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS custom_repair_types (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          deviceType TEXT NOT NULL,
+          repairType TEXT NOT NULL,
+          createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(deviceType, repairType)
+        )
+      ''');
+    }
+    
+    if (oldVersion < 3) {
+      // Add spare_parts table if upgrading from version 2
+      await SparePartsDB.createTable(db);
+    }
+    
+    if (oldVersion < 4) {
+      // Add purchases table if upgrading from version 3
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchases (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          refaccionId INTEGER NOT NULL,
+          precio REAL NOT NULL,
+          fecha TEXT NOT NULL,
+          createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (refaccionId) REFERENCES spare_parts (id)
+        )
+      ''');
+    }
   }
 
-  Future<int> insertRepair(Map<String, dynamic> row) async {
+  // User methods
+  Future<int> insertUser(Map<String, dynamic> user) async {
     final db = await instance.database;
-    return await db.insert('repairs', row);
+    return await db.insert('users', user);
+  }
+
+  Future<Map<String, dynamic>?> getUserByEmail(String email) async {
+    final db = await instance.database;
+    final maps = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.first;
+    }
+    return null;
   }
 
   Future<List<Map<String, dynamic>>> getUsers() async {
@@ -72,9 +128,50 @@ CREATE TABLE repairs (
     return await db.query('users');
   }
 
+  Future<int> updateUser(Map<String, dynamic> user) async {
+    final db = await instance.database;
+    return await db.update(
+      'users',
+      user,
+      where: 'id = ?',
+      whereArgs: [user['id']],
+    );
+  }
+
+  // Current user methods
+  static void setCurrentUserId(int id) {
+    _currentUserId = id;
+  }
+
+  static int? getCurrentUserId() {
+    return _currentUserId;
+  }
+
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    if (_currentUserId == null) return null;
+    
+    final db = await instance.database;
+    final maps = await db.query(
+      'users',
+      where: 'id = ?',
+      whereArgs: [_currentUserId],
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.first;
+    }
+    return null;
+  }
+
+  // Repair methods
+  Future<int> insertRepair(Map<String, dynamic> repair) async {
+    final db = await instance.database;
+    return await db.insert('repairs', repair);
+  }
+
   Future<List<Map<String, dynamic>>> getRepairs() async {
     final db = await instance.database;
-    return await db.query('repairs');
+    return await db.query('repairs', orderBy: 'createdAt DESC');
   }
 
   Future<List<Map<String, dynamic>>> getRepairsByUserId(int userId) async {
@@ -83,49 +180,17 @@ CREATE TABLE repairs (
       'repairs',
       where: 'userId = ?',
       whereArgs: [userId],
+      orderBy: 'createdAt DESC',
     );
   }
 
-  Future<Map<String, dynamic>?> getUserById(int id) async {
-    final db = await instance.database;
-    final results = await db.query(
-      'users',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-    return results.isNotEmpty ? results.first : null;
-  }
-
-  Future<Map<String, dynamic>?> getUserByEmail(String email) async {
-    final db = await instance.database;
-    final results = await db.query(
-      'users',
-      where: 'email = ?',
-      whereArgs: [email],
-      limit: 1,
-    );
-    return results.isNotEmpty ? results.first : null;
-  }
-
-  Future<int> updateUser(Map<String, dynamic> row) async {
-    final db = await instance.database;
-    final id = row['id'];
-    return await db.update(
-      'users',
-      row,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<int> updateRepair(Map<String, dynamic> row) async {
+  Future<int> updateRepair(Map<String, dynamic> repair) async {
     final db = await instance.database;
     return await db.update(
       'repairs',
-      row,
+      repair,
       where: 'id = ?',
-      whereArgs: [row['id']],
+      whereArgs: [repair['id']],
     );
   }
 
@@ -138,22 +203,36 @@ CREATE TABLE repairs (
     );
   }
 
-  Future<void> close() async {
+  // Custom repair types methods
+  Future<int> saveCustomRepairType(String deviceType, String repairType) async {
     final db = await instance.database;
-    db.close();
+    return await db.insert(
+      'custom_repair_types',
+      {
+        'deviceType': deviceType,
+        'repairType': repairType,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore, // Skip if already exists
+    );
   }
 
-  // Nuevo método para establecer el usuario actual
-  static void setCurrentUserId(int userId) {
-    _currentUserId = userId;
+  Future<List<Map<String, dynamic>>> getCustomRepairTypes(String deviceType) async {
+    final db = await instance.database;
+    return await db.query(
+      'custom_repair_types',
+      columns: ['id', 'repairType'],
+      where: 'deviceType = ?',
+      whereArgs: [deviceType],
+      orderBy: 'createdAt DESC',
+    );
   }
 
-  // Método actualizado para obtener el usuario actual
-  Future<Map<String, dynamic>?> getCurrentUser() async {
-    if (_currentUserId == null) {
-      return null;
-    }
-    return await getUserById(_currentUserId!);
+  Future<int> deleteCustomRepairType(int id) async {
+    final db = await instance.database;
+    return await db.delete(
+      'custom_repair_types',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }
-

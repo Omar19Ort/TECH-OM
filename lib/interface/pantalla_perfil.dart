@@ -23,11 +23,18 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
   }
 
   Future<void> _loadUserData() async {
-    final userData = await DatabaseHelper.instance.getCurrentUser();
-    setState(() {
-      _userData = userData;
-      _phoneController.text = userData?['phone'] ?? '';
-    });
+    try {
+      final userData = await DatabaseHelper.instance.getCurrentUser();
+      setState(() {
+        _userData = userData;
+        _phoneController.text = userData?['phone'] ?? '';
+      });
+    } catch (e) {
+      print('Error al cargar datos del usuario: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar datos del usuario: $e')),
+      );
+    }
   }
 
   Future<void> _selectProfileImage() async {
@@ -47,20 +54,39 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
 
   Future<void> _updatePhone() async {
     if (_userData != null) {
-      await DatabaseHelper.instance.updateUser({
-        'id': _userData!['id'],
-        'phone': _phoneController.text,
-      });
-      await _loadUserData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Teléfono actualizado con éxito')),
-      );
+      try {
+        await DatabaseHelper.instance.updateUser({
+          'id': _userData!['id'],
+          'name': _userData!['name'],
+          'email': _userData!['email'],
+          'password': _userData!['password'],
+          'phone': _phoneController.text,
+        });
+        await _loadUserData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Teléfono actualizado con éxito')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar el teléfono: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Perfil de Usuario', style: TextStyle(color: Colors.white)),
+      ),
+      extendBodyBehindAppBar: true,
       body: _userData == null
           ? const Center(child: CircularProgressIndicator())
           : Stack(
@@ -119,11 +145,11 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.blue,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.edit, size: 20, color: Colors.white),
+                    child: const Icon(Icons.edit, size: 20, color: Colors.white),
                   ),
                 ),
               ],
@@ -241,7 +267,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
           const SizedBox(height: 16),
           TextField(
             controller: _phoneController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Nuevo número de teléfono',
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.phone),
@@ -253,15 +279,15 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _updatePhone,
-              child: const Text('Actualizar Teléfono'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.blue,
-                onPrimary: Colors.white,
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              child: const Text('Actualizar Teléfono'),
             ),
           ),
         ],
@@ -275,4 +301,3 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
     super.dispose();
   }
 }
-
