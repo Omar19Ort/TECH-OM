@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:tech_om/database/database_helper.dart';
+import 'package:tech_om/theme/theme_provider.dart';
 import 'pantalla_registro.dart';
 import 'seleccion_dispositivo.dart';
 
@@ -58,6 +60,9 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -81,6 +86,7 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: 28,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -88,7 +94,7 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                   Text(
                     'Inicia sesión en tu cuenta',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontSize: 18,
                     ),
                     textAlign: TextAlign.center,
@@ -96,9 +102,10 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                   const SizedBox(height: 48),
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Correo electrónico',
-                      prefixIcon: Icon(Icons.email_outlined),
+                      prefixIcon: Icon(Icons.email_outlined, 
+                        color: isDarkMode ? Colors.blue[300] : Colors.blue),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
@@ -114,9 +121,10 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Contraseña',
-                      prefixIcon: Icon(Icons.lock_outline),
+                      prefixIcon: Icon(Icons.lock_outline,
+                        color: isDarkMode ? Colors.blue[300] : Colors.blue),
                     ),
                     obscureText: true,
                     validator: (value) {
@@ -157,7 +165,7 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                     child: Text(
                       '¿No tienes una cuenta? Regístrate',
                       style: TextStyle(
-                        color: Theme.of(context).primaryColor,
+                        color: isDarkMode ? Colors.blue[300] : Theme.of(context).primaryColor,
                         fontSize: 16,
                       ),
                     ),
@@ -170,7 +178,9 @@ class _PantallaInicioSesionState extends State<PantallaInicioSesion> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      side: BorderSide(color: Theme.of(context).primaryColor),
+                      side: BorderSide(
+                        color: isDarkMode ? Colors.blue[300]! : Theme.of(context).primaryColor,
+                      ),
                     ),
                     child: const Text(
                       'Volver a Bienvenida',

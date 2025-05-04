@@ -1,36 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'acerca_de.dart';
 import 'historial_reparaciones.dart';
 import 'Pantalla_usuarios.dart';
-import 'pantalla_refacciones.dart'; // Importamos la nueva pantalla
-import 'registrar_compra_refaccion.dart'; // Importamos la pantalla de registro de compra
-import 'historial_compras.dart'; // Importamos la pantalla de historial de compras
+import 'pantalla_refacciones.dart';
+import 'registrar_compra_refaccion.dart';
+import 'historial_compras.dart';
+import 'historial_pagos.dart';
+import '../theme/theme_provider.dart';
 
 class PantallaAjustes extends StatefulWidget {
-  final Function(ThemeMode) onThemeChanged;
-  final ThemeMode currentThemeMode;
-
-  const PantallaAjustes({
-    Key? key,
-    required this.onThemeChanged,
-    required this.currentThemeMode,
-  }) : super(key: key);
+  const PantallaAjustes({Key? key}) : super(key: key);
 
   @override
   _PantallaAjustesState createState() => _PantallaAjustesState();
 }
 
 class _PantallaAjustesState extends State<PantallaAjustes> {
-  late bool _isDarkMode;
-
-  @override
-  void initState() {
-    super.initState();
-    _isDarkMode = widget.currentThemeMode == ThemeMode.dark;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -39,7 +30,6 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -51,7 +41,7 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
           Expanded(
             child: ListView(
               children: [
-                _buildThemeSwitch(),
+                _buildThemeSwitch(themeProvider),
                 _buildListTile(
                   'Catálogo de Refacciones',
                   Icons.inventory_2_outlined,
@@ -104,9 +94,26 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
                   'Historial de pagos',
                   Icons.payment_outlined,
                   onTap: () {
-                    // Implementar navegación al historial de pagos
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistorialPagos(),
+                      ),
+                    );
                   },
                 ),
+                // _buildListTile(
+                //   'Tipos de Reparación',
+                //   Icons.category_outlined,
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => const PantallaTiposReparacion(),
+                //       ),
+                //     );
+                //   },
+                // ),
                 _buildListTile(
                   'Usuarios',
                   Icons.people_outline,
@@ -147,7 +154,9 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
     );
   }
 
-  Widget _buildThemeSwitch() {
+  Widget _buildThemeSwitch(ThemeProvider themeProvider) {
+    final isDarkMode = themeProvider.isDarkMode;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -163,20 +172,17 @@ class _PantallaAjustesState extends State<PantallaAjustes> {
           Row(
             children: [
               Text(
-                _isDarkMode ? 'Oscuro' : 'Claro',
+                isDarkMode ? 'Oscuro' : 'Claro',
                 style: TextStyle(
-                  color: _isDarkMode ? Colors.grey : Colors.black87,
+                  color: isDarkMode ? Colors.grey : Colors.black87,
                 ),
               ),
               const SizedBox(width: 8),
               Switch(
-                value: _isDarkMode,
+                value: isDarkMode,
                 onChanged: (value) {
-                  setState(() {
-                    _isDarkMode = value;
-                  });
-                  widget.onThemeChanged(
-                    _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                  themeProvider.setThemeMode(
+                    value ? ThemeMode.dark : ThemeMode.light,
                   );
                 },
                 activeColor: Colors.blue,

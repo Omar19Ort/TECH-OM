@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tech_om/database/database_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'registrar_pago.dart';
 
 class HistorialReparaciones extends StatefulWidget {
   const HistorialReparaciones({Key? key}) : super(key: key);
@@ -13,6 +14,7 @@ class HistorialReparaciones extends StatefulWidget {
 class _HistorialReparacionesState extends State<HistorialReparaciones> {
   List<Map<String, dynamic>> _repairs = [];
   bool _isLoading = true;
+  String? _filterPaymentStatus;
 
   @override
   void initState() {
@@ -22,6 +24,10 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
 
   Future<void> _loadRepairs() async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+      
       // Obtener el ID del usuario actual
       final userId = DatabaseHelper.getCurrentUserId();
       
@@ -32,6 +38,12 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
       } else {
         // Si no hay usuario logueado, obtener todas las reparaciones (o ninguna)
         repairs = await DatabaseHelper.instance.getRepairs();
+      }
+      
+      // Aplicar filtro de estado de pago si está establecido
+      if (_filterPaymentStatus != null) {
+        repairs = repairs.where((repair) => 
+          repair['paymentStatus'] == _filterPaymentStatus).toList();
       }
       
       setState(() {
@@ -83,6 +95,20 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
     }
   }
 
+  Future<void> _registerPayment(Map<String, dynamic> repair) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RegistrarPago(repair: repair),
+      ),
+    );
+
+    if (result == true) {
+      // Si se registró un pago, recargar la lista
+      _loadRepairs();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,6 +127,35 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list, color: Colors.black),
+            onSelected: (value) {
+              setState(() {
+                _filterPaymentStatus = value == 'all' ? null : value;
+              });
+              _loadRepairs();
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'all',
+                child: Text('Todos los estados'),
+              ),
+              const PopupMenuItem(
+                value: 'pendiente',
+                child: Text('Pendiente de pago'),
+              ),
+              const PopupMenuItem(
+                value: 'parcial',
+                child: Text('Pago parcial'),
+              ),
+              const PopupMenuItem(
+                value: 'pagado',
+                child: Text('Pagado'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -194,16 +249,39 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
                                           ),
                                         ),
                                       ),
+                                    const SizedBox(height: 12),
+                                    // Mostrar el estado de pago
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: _getPaymentStatusColor(repair['paymentStatus'] ?? 'pendiente'),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        _getPaymentStatusText(repair['paymentStatus'] ?? 'pendiente'),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 16),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
+                                        if (repair['paymentStatus'] != 'pagado')
+                                          TextButton.icon(
+                                            icon: const Icon(Icons.payment, color: Colors.blue),
+                                            label: const Text('Pagar', style: TextStyle(color: Colors.blue)),
+                                            onPressed: () => _registerPayment(repair),
+                                          ),
+                                        const SizedBox(width: 8),
                                         TextButton.icon(
                                           icon: const Icon(Icons.edit, color: Colors.blue),
                                           label: const Text('Editar', style: TextStyle(color: Colors.blue)),
                                           onPressed: () => _editRepair(repair),
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 8),
                                         TextButton.icon(
                                           icon: const Icon(Icons.delete, color: Colors.red),
                                           label: const Text('Eliminar', style: TextStyle(color: Colors.red)),
@@ -237,6 +315,30 @@ class _HistorialReparacionesState extends State<HistorialReparaciones> {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
       );
+    }
+  }
+
+  Color _getPaymentStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pagado':
+        return Colors.green;
+      case 'parcial':
+        return Colors.orange;
+      case 'pendiente':
+      default:
+        return Colors.red;
+    }
+  }
+
+  String _getPaymentStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pagado':
+        return 'Pagado';
+      case 'parcial':
+        return 'Pago parcial';
+      case 'pendiente':
+      default:
+        return 'Pendiente de pago';
     }
   }
 

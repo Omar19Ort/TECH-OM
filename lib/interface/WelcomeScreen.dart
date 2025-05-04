@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'Inicio_sesion.dart';
+import '../theme/theme_provider.dart';
 
 class PantallaBienvenida extends StatelessWidget {
   const PantallaBienvenida({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
@@ -25,7 +28,7 @@ class PantallaBienvenida extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Text(
-                          'Bienvenido a TECH-OM',
+                          'Hola a TECH-OM',
                           style: TextStyle(
                             color: isDarkMode ? Colors.blue[300] : Colors.blue,
                             fontSize: 32,
@@ -38,7 +41,7 @@ class PantallaBienvenida extends StatelessWidget {
                           height: 240,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            image: DecorationImage(
+                            image: const DecorationImage(
                               image: AssetImage('assets/bienvenida.jpeg'),
                               fit: BoxFit.cover,
                             ),
@@ -107,4 +110,3 @@ class PantallaBienvenida extends StatelessWidget {
     );
   }
 }
-

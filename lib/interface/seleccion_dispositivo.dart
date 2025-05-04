@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'menu_reparacion.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_perfil.dart';
 import 'WelcomeScreen.dart';
-import 'cotizar_reparacion.dart'; // New import for the quote screen
+import 'cotizar_reparacion.dart';
+import '../theme/theme_provider.dart';
 
 class SeleccionDispositivo extends StatefulWidget {
   const SeleccionDispositivo({Key? key}) : super(key: key);
@@ -14,14 +16,6 @@ class SeleccionDispositivo extends StatefulWidget {
 
 class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
   int _selectedIndex = 1;
-  ThemeMode _currentThemeMode = ThemeMode.system;
-
-  void _onThemeChanged(ThemeMode mode) {
-    setState(() {
-      _currentThemeMode = mode;
-    });
-    // Aquí se implementaría la lógica para cambiar el tema en toda la app
-  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -47,16 +41,13 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
   }
 
   void _navigateToSettings() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PantallaAjustes(
-          onThemeChanged: _onThemeChanged,
-          currentThemeMode: _currentThemeMode,
-        ),
-      ),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const PantallaAjustes(),
+    ),
+  );
+}
 
   void _navigateToCotizacion() {
     Navigator.push(
@@ -114,8 +105,11 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    
     return Scaffold(
-      body: _buildBody(),
+      body: _buildBody(isDarkMode),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: _onItemTapped,
         selectedIndex: _selectedIndex,
@@ -146,16 +140,19 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(bool isDarkMode) {
+    final primaryColor = isDarkMode ? Colors.blue[700] : Colors.blue;
+    final secondaryColor = const Color(0xFF9DC0B0);
+    
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.blue.shade100,
-            Colors.blue.shade200,
-            Colors.blue.shade300,
+            isDarkMode ? Colors.blue[900]! : Colors.blue[100]!,
+            isDarkMode ? Colors.blue[800]! : Colors.blue[200]!,
+            isDarkMode ? Colors.blue[700]! : Colors.blue[300]!,
           ],
         ),
       ),
@@ -163,12 +160,12 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               'Selecciona tu dispositivo',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDarkMode ? Colors.white : Colors.white,
               ),
             ),
             const SizedBox(height: 50),
@@ -180,12 +177,14 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
                   'Computadora',
                   Icons.computer,
                   () => _navigateToRepairMenu(context, 'Computadora'),
+                  isDarkMode,
                 ),
                 _buildDeviceOption(
                   context,
                   'Celular',
                   Icons.smartphone,
                   () => _navigateToRepairMenu(context, 'Celular'),
+                  isDarkMode,
                 ),
               ],
             ),
@@ -200,17 +199,17 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
     String title,
     IconData icon,
     VoidCallback onTap,
+    bool isDarkMode,
   ) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-
+    final primaryColor = isDarkMode ? Colors.blue[700] : Colors.blue;
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 150,
         height: 150,
         decoration: BoxDecoration(
-          color: isDarkMode ? theme.cardColor : Colors.white,
+          color: isDarkMode ? Colors.grey[850] : Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -226,14 +225,14 @@ class _SeleccionDispositivoState extends State<SeleccionDispositivo> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 60, color: theme.primaryColor),
+            Icon(icon, size: 60, color: primaryColor),
             const SizedBox(height: 10),
             Text(
               title,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
+                color: primaryColor,
               ),
             ),
           ],

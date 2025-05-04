@@ -155,19 +155,19 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
 
   // Calcular costo total
   _calculateTotal() {
-  double partsCost = 0.0;
-  if (_selectedSparePart != null && _selectedSparePart!['price'] != null) {
-    if (_selectedSparePart!['price'] is num) {
-      partsCost = (_selectedSparePart!['price'] as num).toDouble();
-    } else if (_selectedSparePart!['price'] is String) {
-      partsCost = double.tryParse(_selectedSparePart!['price']) ?? 0.0;
+    double partsCost = 0.0;
+    if (_selectedSparePart != null && _selectedSparePart!['price'] != null) {
+      if (_selectedSparePart!['price'] is num) {
+        partsCost = (_selectedSparePart!['price'] as num).toDouble();
+      } else if (_selectedSparePart!['price'] is String) {
+        partsCost = double.tryParse(_selectedSparePart!['price']) ?? 0.0;
+      }
     }
+    
+    setState(() {
+      _totalCost = partsCost + _laborCost;
+    });
   }
-  
-  setState(() {
-    _totalCost = partsCost + _laborCost;
-  });
-}
 
   // Mostrar mensaje de error
   void _showErrorSnackBar(String message) {
@@ -232,6 +232,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
+    final isVerySmallScreen = screenSize.width < 300;
     
     return Scaffold(
       appBar: AppBar(
@@ -255,10 +256,17 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                 });
               },
               tooltip: 'Volver a tipos de reparación',
+              // Ajustar tamaño para pantallas pequeñas
+              padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+              constraints: BoxConstraints(
+                minWidth: isSmallScreen ? 40 : 48,
+                minHeight: isSmallScreen ? 40 : 48,
+              ),
             ),
         ],
       ),
       body: SafeArea(
+        // Usar SingleChildScrollView para evitar desbordamientos en pantallas pequeñas
         child: _isLoading
             ? Center(
                 child: Column(
@@ -275,14 +283,14 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
               )
             : Column(
                 children: [
-                  _buildDeviceTypeSelector(isSmallScreen),
+                  _buildDeviceTypeSelector(isSmallScreen, isVerySmallScreen),
                   Expanded(
                     child: _showRepairTypes
-                        ? _buildRepairTypesList(isSmallScreen)
-                        : _buildSparePartsList(isSmallScreen),
+                        ? _buildRepairTypesList(isSmallScreen, isVerySmallScreen)
+                        : _buildSparePartsList(isSmallScreen, isVerySmallScreen),
                   ),
                   if (_selectedSparePart != null && !_showRepairTypes)
-                    _buildQuoteSummary(isSmallScreen),
+                    _buildQuoteSummary(isSmallScreen, isVerySmallScreen),
                 ],
               ),
       ),
@@ -290,10 +298,11 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
   }
 
   // Selector de tipo de dispositivo
-  Widget _buildDeviceTypeSelector(bool isSmallScreen) {
+  Widget _buildDeviceTypeSelector(bool isSmallScreen, bool isVerySmallScreen) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[800] : Colors.white,
@@ -319,7 +328,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
-              if (constraints.maxWidth < 300) {
+              if (isVerySmallScreen) {
                 // Para pantallas muy pequeñas
                 return Column(
                   children: [
@@ -334,12 +343,18 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                   segments: [
                     ButtonSegment<String>(
                       value: 'Celular',
-                      label: Text('Celular', style: TextStyle(fontSize: isSmallScreen ? 12 : 14)),
+                      label: Text('Celular', 
+                        style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       icon: Icon(Icons.smartphone, size: isSmallScreen ? 18 : 20),
                     ),
                     ButtonSegment<String>(
                       value: 'Computadora',
-                      label: Text('Computadora', style: TextStyle(fontSize: isSmallScreen ? 12 : 14)),
+                      label: Text('Computadora', 
+                        style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       icon: Icon(Icons.computer, size: isSmallScreen ? 18 : 20),
                     ),
                   ],
@@ -355,6 +370,13 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                         }
                         return Colors.transparent;
                       },
+                    ),
+                    // Ajustar padding para pantallas pequeñas
+                    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                      EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 8 : 12,
+                        vertical: isSmallScreen ? 6 : 8,
+                      ),
                     ),
                   ),
                 );
@@ -377,6 +399,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                         color: isDarkMode ? Colors.white : Colors.black87,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ),
                 ],
@@ -387,7 +410,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
     );
   }
 
-  // Añadir este método para pantallas pequeñas
+  // Botón de dispositivo para pantallas pequeñas
   Widget _buildDeviceButton(String deviceType, IconData icon, bool isSmallScreen) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedDeviceType == deviceType;
@@ -437,7 +460,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
   }
 
   // Lista de tipos de reparación
-  Widget _buildRepairTypesList(bool isSmallScreen) {
+  Widget _buildRepairTypesList(bool isSmallScreen, bool isVerySmallScreen) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return Column(
@@ -458,13 +481,18 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               // Ajustar el número de columnas según el ancho disponible
-              final crossAxisCount = constraints.maxWidth < 300 ? 1 : 2;
+              final crossAxisCount = isVerySmallScreen ? 1 : 
+                                    (constraints.maxWidth < 400 ? 2 : 3);
+              
+              // Ajustar la relación de aspecto según el número de columnas
+              final childAspectRatio = crossAxisCount == 1 ? 3.0 : 
+                                      (crossAxisCount == 2 ? 1.5 : 1.2);
               
               return GridView.builder(
                 padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  childAspectRatio: crossAxisCount == 1 ? 2.5 : 1.2,
+                  childAspectRatio: childAspectRatio,
                   crossAxisSpacing: isSmallScreen ? 12 : 16,
                   mainAxisSpacing: isSmallScreen ? 12 : 16,
                 ),
@@ -487,7 +515,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                                 children: [
                                   Icon(
                                     repair['icon'] ?? Icons.build,
-                                    size: isSmallScreen ? 32 : 40,
+                                    size: isSmallScreen ? 28 : 36,
                                     color: repair['isCustom'] == true
                                         ? primaryColor
                                         : secondaryColor,
@@ -527,22 +555,24 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                                 children: [
                                   Icon(
                                     repair['icon'] ?? Icons.build,
-                                    size: isSmallScreen ? 32 : 40,
+                                    size: isSmallScreen ? 28 : 36,
                                     color: repair['isCustom'] == true
                                         ? primaryColor
                                         : secondaryColor,
                                   ),
-                                  SizedBox(height: isSmallScreen ? 8 : 12),
-                                  Text(
-                                    repair['name'],
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: isSmallScreen ? 13 : 14,
-                                      color: isDarkMode ? Colors.white : Colors.black87,
+                                  SizedBox(height: isSmallScreen ? 6 : 10),
+                                  Flexible(
+                                    child: Text(
+                                      repair['name'],
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: isSmallScreen ? 12 : 13,
+                                        color: isDarkMode ? Colors.white : Colors.black87,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2,
                                   ),
                                   if (repair['isCustom'] == true)
                                     Text(
@@ -568,7 +598,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
   }
 
   // Lista de refacciones
-  Widget _buildSparePartsList(bool isSmallScreen) {
+  Widget _buildSparePartsList(bool isSmallScreen, bool isVerySmallScreen) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final filteredParts = _getFilteredSpareParts();
     
@@ -608,13 +638,16 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Agrega refacciones en el catálogo',
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 14 : 16,
-                          color: Colors.grey[600],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          'Agrega refacciones en el catálogo',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14 : 16,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -641,7 +674,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                         onTap: () => _selectSparePart(part),
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
-                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          padding: EdgeInsets.all(isSmallScreen ? 10 : 14),
                           child: Row(
                             children: [
                               // Indicador de selección
@@ -664,7 +697,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                                       )
                                     : null,
                               ),
-                              SizedBox(width: isSmallScreen ? 12 : 16),
+                              SizedBox(width: isSmallScreen ? 10 : 14),
                               
                               // Información de la refacción
                               Expanded(
@@ -688,6 +721,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                                         fontSize: isSmallScreen ? 12 : 14,
                                       ),
                                       overflow: TextOverflow.ellipsis,
+                                      maxLines: isVerySmallScreen ? 1 : 2,
                                     ),
                                   ],
                                 ),
@@ -696,8 +730,8 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                               // Precio
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: isSmallScreen ? 10 : 12, 
-                                  vertical: isSmallScreen ? 6 : 8
+                                  horizontal: isSmallScreen ? 8 : 12, 
+                                  vertical: isSmallScreen ? 4 : 8
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected ? secondaryColor : Colors.grey[200],
@@ -739,7 +773,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                   controller: _laborCostController,
                   decoration: InputDecoration(
                     labelText: 'Costo de mano de obra',
-                    prefixIcon: Icon(Icons.engineering, color: secondaryColor),
+                    prefixIcon: Icon(Icons.engineering, color: secondaryColor, size: isSmallScreen ? 18 : 20),
                     prefixText: '\$ ',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -763,12 +797,12 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
               ],
             ),
           ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   // Resumen de la cotización
-  Widget _buildQuoteSummary(bool isSmallScreen) {
+  Widget _buildQuoteSummary(bool isSmallScreen, bool isVerySmallScreen) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     
@@ -858,7 +892,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
                       _formatCurrency(_totalCost),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: isSmallScreen ? 20 : 24,
+                        fontSize: isSmallScreen ? 18 : 22,
                         color: primaryColor,
                       ),
                     ),
@@ -891,7 +925,7 @@ class _CotizarReparacionState extends State<CotizarReparacion> {
             style: ElevatedButton.styleFrom(
               backgroundColor: isDarkMode ? secondaryColor : secondaryColor,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16),
+              padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

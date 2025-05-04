@@ -8,29 +8,36 @@ class SparePartsDB {
 
   // Método para crear la tabla de refacciones
   static Future<void> createTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS spare_parts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        partType TEXT NOT NULL,
-        brand TEXT NOT NULL,
-        model TEXT NOT NULL,
-        price REAL NOT NULL,
-        deviceType TEXT NOT NULL,
-        createdAt TEXT DEFAULT CURRENT_TIMESTAMP
-      )
-    ''');
+    // Verificar si la tabla spare_parts existe antes de crearla
+    final tables = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='spare_parts'");
+    if (tables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS spare_parts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          partType TEXT NOT NULL,
+          brand TEXT NOT NULL,
+          model TEXT NOT NULL,
+          price REAL NOT NULL,
+          deviceType TEXT NOT NULL,
+          createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+    }
     
-    // Crear tabla de compras de refacciones
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS purchases (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        refaccionId INTEGER NOT NULL,
-        precio REAL NOT NULL,
-        fecha TEXT NOT NULL,
-        createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (refaccionId) REFERENCES spare_parts (id)
-      )
-    ''');
+    // Verificar si la tabla purchases existe antes de crearla
+    final purchasesTables = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='purchases'");
+    if (purchasesTables.isEmpty) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchases (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          refaccionId INTEGER NOT NULL,
+          precio REAL NOT NULL,
+          fecha TEXT NOT NULL,
+          createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (refaccionId) REFERENCES spare_parts (id)
+        )
+      ''');
+    }
   }
 
   // Método para insertar una nueva refacción

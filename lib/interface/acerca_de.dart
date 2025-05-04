@@ -71,7 +71,7 @@ class AcercaDe extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Versión 1.0.0',
+                'Versión 3.6.0',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black54,
